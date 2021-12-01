@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqldb-deployment
+  labels:
+    app: mysqldb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqldb
+  template:
+    metadata:
+      labels:
+        app: mysqldb
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysqldb
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: mysqldb-root-password
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: mysqldb-username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysqldb-secret
+              key: mysqldb-password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysqldb-volume
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysqldb-volume
+        persistentVolumeClaim:
+          claimName: mysqldb-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb-service
+spec:
+  selector:
+    app: mysqldb
+  type: LoadBalancer
+  externalIPs:
+    - 80.241.216.147
+  ports:
+    - port: 3306
