@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-graphql-deployment
+  labels:
+    app: apollo-graphql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-graphql
+  template:
+    metadata:
+      labels:
+        app: apollo-graphql
+    spec:
+      containers:
+      - name: apollo-graphql
+        image: refazul/sickbazar-backend
+        ports:
+        - containerPort: 4000
+        env:
+        - name: db_user_mongodb
+          valueFrom:
+            secretKeyRef:
+              name: apollo-graphql-secret
+              key: mongo-db_user
+        - name: db_pass_mongodb
+          valueFrom: 
+            secretKeyRef:
+              name: apollo-graphql-secret
+              key: mongo-db_pass
+        - name: db_host
+          valueFrom:
+            secretKeyRef:
+              name: apollo-graphql-secret
+              key: mongo-db_host
+        - name: db_port_mongodb
+          valueFrom:
+            secretKeyRef:
+              name: apollo-graphql-secret
+              key: mongo-db_port
+        - name: db_name_mongodb
+          valueFrom:
+            secretKeyRef:
+              name: apollo-graphql-secret
+              key: mongo-db_name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apollo-graphql-service
+spec:
+  selector:
+    app: apollo-graphql
+  type: LoadBalancer
+  externalIPs:
+    - 80.241.216.147
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
